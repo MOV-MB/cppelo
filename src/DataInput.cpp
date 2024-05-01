@@ -1,14 +1,8 @@
 #include <cstdio>
-#include <stdio.h> 
-#include <stdlib.h>
-#include <array>
+#include <cstdlib>
 #include <iostream>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>  
-#include <netinet/in.h> 
 #include <fstream>
-#include <signal.h>
+#include <csignal>
 #include <string>
 #include <vector>
 #include <functional>
@@ -23,10 +17,8 @@
 #include "StringProcessing.hpp"
 #include "EventHandling.hpp"
 #include "include/sqlite/sqlite3.h"
-#include "Database.hpp"
 #include "DataInput.hpp"
 
-using namespace std;
 
 volatile static bool running_process = false;
 
@@ -34,7 +26,7 @@ std::mutex m;
 
 std::mutex worker_m;
 
-vector<int> numlist;
+vector<int> numList;
 
 std::condition_variable cv;
 
@@ -42,40 +34,40 @@ std::queue <std::function<void(string, vector<Player>&)>> functions;
 
 void worker();
 
-void sigintHandler(int sigint) 
-{ 
-    signal(SIGINT, sigintHandler); 
+void sigintHandler(int sigint)
+{
+    signal(SIGINT, sigintHandler);
 
     running_process = true;
     fflush(stdout);
-} 
+}
 
-void _funnel(string line, vector<Player> &playerlist) {
+void _funnel(string line, vector<Player> &playerList) {
 
-    //cout << "In funnel(), ADD: "  << &playerlist << endl;
+    //cout << "In funnel(), ADD: "  << &playerList << endl;
     if (is_number(line.substr(0, line.find(":")))) {
-        event_say(line, playerlist);
+        event_say(line, playerList);
         return;
     }
     else if (line.find("Player", 0) == 0) {
-        event_player(line, playerlist);
+        event_player(line, playerList);
     }
     else if (line.find("broad", 0) == 0) {
-        event_broadcast(line, playerlist);
+        event_broadcast(line, playerList);
     }
     else if (line.find("Kill", 0) == 0) {
-        event_kill(line, playerlist);
+        event_kill(line, playerList);
     }
     else if (line.find("ClientDisconnect:", 0) == 0) {
-        event_clientdisconnect(line, playerlist);
+        event_clientdisconnect(line, playerList);
     }
     else if (line.find("ShutdownGame", 0) == 0) {
-        event_shutdowngame(playerlist);
+        event_shutdowngame(playerList);
     }
 }
 
 
-void read_server_stdout(string cmd, vector<Player> &playerlist) {
+void read_server_stdout(string cmd, vector<Player> &playerList) {
 
     std::thread t(worker);
     t.detach();
@@ -92,9 +84,9 @@ void read_server_stdout(string cmd, vector<Player> &playerlist) {
         while (!feof(stream)) {
             fgets(buffer, max_buffer, stream);
             data = string(buffer);
-            functions.push(std::bind(_funnel, data.erase(0, 4), std::ref(playerlist)));
+            functions.push(std::bind(_funnel, data.erase(0, 4), std::ref(playerList)));
             cv.notify_all();
-            
+
             if (running_process)
             {
                 cout << "Terminating Server.." << endl;
@@ -108,7 +100,7 @@ void read_server_stdout(string cmd, vector<Player> &playerlist) {
     }
 }
 
-void read_tail_stdout(string path, vector<Player> &playerlist) {
+void read_tail_stdout(const string& path, vector<Player> &playerList) {
 
     send_stuff("Loading Elo..");
 
@@ -134,9 +126,9 @@ void read_tail_stdout(string path, vector<Player> &playerlist) {
             fgets(buffer, max_buffer, stream);
             data = string(buffer);
             cout << data;
-            functions.push(std::bind(_funnel, data, std::ref(playerlist)));
+            functions.emplace(std::bind(_funnel, data, std::ref(playerList)));
             cv.notify_all();
-            
+
             if (running_process)
             {
                 cout << "Terminating Program.." << endl;

@@ -9,14 +9,12 @@
 #include "StringProcessing.hpp"
 
 
-using namespace std;
-
-void event_player(string& line, vector<Player>& playerlist) {
+void event_player(string& line, vector<Player>& playerList) {
     int id = get_player_id(line);
     bool existing = false;
-    for (auto element: playerlist) {
+    for (auto element: playerList) {
         if (id == element.get_id()) {
-            cout << "Client with ID: \"" << id << "\" already initialized.";
+            std::cout << "Client with ID: \"" << id << "\" already initialized.";
             return;
         }
     }
@@ -27,47 +25,46 @@ void event_player(string& line, vector<Player>& playerlist) {
         db_create_player(plr);
     }
 
-    playerlist.push_back(plr);
-    cout << "PTR 1: " << &plr << endl;
+    playerList.push_back(plr);
+    std::cout << "PTR 1: " << &plr << endl;
 }
 
 
 
-void event_say(string& line, vector<Player>& playerlist) {
+void event_say(string& line, vector<Player>& playerList) {
     //1: say: blake: "chat example"
     string::size_type pos = line.find("\"!", 0);
     if (pos != string::npos) {
         if (line.find("!chill", pos) == pos+1)
         {
-            event_say_chill(line, playerlist);
+            event_say_chill(line, playerList);
         }
 
         if (line.find("!elo", pos) == pos+1)
         {
-            event_say_elo(line, playerlist);
+            event_say_elo(line, playerList);
         }
     }
-    else
-        return;
+
 }
-void event_say_chill(string& line, vector<Player>& playerlist) {
-    string::size_type pos1 = line.find(":", 0);
+void event_say_chill(string& line, vector<Player>& playerList) {
+    string::size_type pos1 = line.find(':', 0);
     int id = stoi(line.substr(0, pos1));
     if (line.find("\"!chill") != string::npos) {
-        for (vector<Player>::iterator i = playerlist.begin(); i != playerlist.end(); i++) {
-            if (id == i->get_id()) {
-                i->flip_chill();
+        for (auto & i : playerList) {
+            if (id == i.get_id()) {
+                i.flip_chill();
                 return;
             }
         }
     }
 }
-void event_say_elo(string& line, vector<Player>& playerlist) {
-    cout << "elo reached?" << endl;
-    string::size_type pos1 = line.find(":", 0);
+void event_say_elo(string& line, vector<Player>& playerList) {
+    std::cout << "elo reached?" << endl;
+    string::size_type pos1 = line.find(':', 0);
     int id = stoi(line.substr(0,pos1));
     if (line.find("\"!elo") != string::npos) {
-        for (auto &x: playerlist) {
+        for (auto &x: playerList) {
             stringstream stream;
             stream << x.get_mmr();
             if (x.get_id() == id) {
@@ -77,137 +74,136 @@ void event_say_elo(string& line, vector<Player>& playerlist) {
     }
 }
 
-void event_broadcast(std::string& line, vector<Player>& playerlist) { //event_broadcast 
-    string::size_type i = line.find("@@@PLD");
+void event_broadcast(std::string& line, vector<Player>& playerList) { //event_broadcast
+    std::string::size_type i = line.find("@@@PLD");
     if (i != string::npos) {
-        event_broadcast_duel(line, playerlist);
+        event_broadcast_duel(line, playerList);
         return;
     }
 
     i = line.find("@@@PLR");
-    if (i != string::npos) {
-        event_broadcast_name(line, playerlist);
+    if (i != std::string::npos) {
+        event_broadcast_name(line, playerList);
         return;
     }
 
 }
-void event_broadcast_name(string& line, vector<Player>& playerlist) {
+void event_broadcast_name(std::string& line, vector<Player>& playerList) {
     //broadcast: print "J^4|^7P ^4b^7lake_^4w^7on^7 @@@PLRENAME blake\n
     
-    static string delimiter = "@@@PLRENAME";
-    static string::size_type deli_size = delimiter.size();
+    static std::string delimiter = "@@@PLRENAME";
+    static std::string::size_type deli_size = delimiter.size();
 
-    string::size_type pos1 = line.find("\"") + 1;
-    string::size_type pos2 = line.find(delimiter) -1;
-    
-    string name1;
-    string name2;
+    std::string::size_type pos1 = line.find('\"') + 1;
+    std::string::size_type pos2 = line.find(delimiter) -1;
+
+    std::string name1;
+    std::string name2;
 
     pos_substr(line, name1, pos1, pos2 - 2);
-    cout << "split name substr1 : " << name1 << endl;
+    std::cout << "split name substr1 : " << name1 << endl;
 
     pos1 = pos2 + deli_size + 2;
-    pos2 = line.find("\\", pos1);
+    pos2 = line.find('\\', pos1);
 
     pos_substr(line, name2, pos1, pos2);
-    cout << "split name substr2 : " << name2 << endl;
+    std::cout << "split name substr2 : " << name2 << endl;
 
     try {
-        Player* ptr = find_by_name(playerlist, name1);
+        Player* ptr = find_by_name(playerList, name1);
         if (ptr) ptr->set_name(name2);
         else {
-            cout << "Player not found, returning" << endl;
+            std::cout << "Player not found, returning" << endl;
             return;
         }
-        cout << "\"" << name1 << "\" Has changed the name to: \"" << playerlist[0].get_name() << "\"" << endl; 
+        std::cout << "\"" << name1 << "\" Has changed the name to: \"" << playerList[0].get_name() << "\"" << endl;
 
     }
     catch (int e) {
-        cout << "Error in setting the name." << endl;
+        std::cout << "Error in setting the name." << endl;
     }
 }
 
-void event_broadcast_duel(std::string& line, vector<Player>& playerlist) {
+void event_broadcast_duel(std::string& line, vector<Player>& playerList) {
     //broadcast: print "blake @@@PLDUELACCEPT segi!\n"
 
-    static string delimiter = "@@@PLDUELACCEPT";
-    static string::size_type deli_size = delimiter.size();
-    string::size_type pos1 = line.find("\"") + 1;
-    string::size_type pos2 = line.find(delimiter);
+    static std::string delimiter = "@@@PLDUELACCEPT";
+    static std::string::size_type deli_size = delimiter.size();
+    std::string::size_type pos1 = line.find('\"') + 1;
+    std::string::size_type pos2 = line.find(delimiter);
 
-    string name1;
-    string name2;
+    std::string name1;
+    std::string name2;
 
     pos_substr(line, name1, pos1, pos2 - 1);
 
     pos1 = pos2 + deli_size + 1;
-    pos2 = line.find("\\", pos1) - 1;
+    pos2 = line.find('\\', pos1) - 1;
 
     pos_substr(line, name2, pos1, pos2);
 
-    Player* p1 = find_by_name(playerlist, name1);
-    Player* p2 = find_by_name(playerlist, name2);
+    Player* p1 = find_by_name(playerList, name1);
+    Player* p2 = find_by_name(playerList, name2);
     
     if (p1) {
-        p1->Player::duel_start(playerlist, p2->get_id());
+        p1->Player::duel_start(playerList, p2->get_id());
     }
     else
-        cout << "Player \"" + name1 + "\" has not been found."; 
-    
+        std::cout << "Player \"" + name1 + "\" has not been found.";
 
-    cout << "NAME1: " << "+" + name1 + "+" << endl << "NAME2: " << "+" + name2 + "+" << endl;
+
+    std::cout << "NAME1: " << "+" + name1 + "+" << endl << "NAME2: " << "+" + name2 + "+" << endl;
 
 
 }
 
-void event_kill(string& line, vector<Player>& playerlist) {
+void event_kill(std::string& line, vector<Player>& playerList) {
     //Kill: 0 1 86: segi killed blake by MOD_SABER
-    string::size_type pos1 = line.find(": ", 0) + 2;
-    string::size_type pos2 = line.find(" ", pos1);
+    std::string::size_type pos1 = line.find(": ", 0) + 2;
+    std::string::size_type pos2 = line.find(' ', pos1);
 
-    string pid1;
+    std::string pid1;
 
     pos_substr(line, pid1, pos1, pos2);
 
-    string pid2;
+    std::string pid2;
 
     pos1 = pos2 + 1;
-    pos2 = line.find(" ", pos1 + 1);
+    pos2 = line.find(' ', pos1 + 1);
 
     pos_substr(line, pid2, pos1, pos2);
 
-    Player* player = find_by_id(playerlist, stoi(pid1));
+    Player* player = find_by_id(playerList, stoi(pid1));
     if (player->in_duel()) {
-        player->duel_win(playerlist, stoi(pid2));
+        player->duel_win(playerList, stoi(pid2));
     }
     else
     {
-        cout << "Player not in duel.";
+        std::cout << "Player not in duel.";
         return;
     }
-    return;
-}
+    }
 
 
-void event_clientdisconnect(std::string& line, std::vector<Player>& playerlist) {
+void event_clientdisconnect(std::string& line, std::vector<Player>& playerList) {
     //ClientDisconnect: 0
-    string::size_type pos1 = line.find(": ", 0) + 2;
+    std::string::size_type pos1 = line.find(": ", 0) + 2;
     int pid = stoi(line.substr(pos1, line.size()-pos1));
 
-    for (vector<Player>::size_type i = 0; i != playerlist.size(); i++) {
-        db_save_player(playerlist[i]);
-        playerlist.erase(playerlist.begin() + i);
+    for (vector<Player>::size_type i = 0; i != playerList.size(); i++) {
+        db_save_player(playerList[i]);
+        playerList.erase(playerList.begin() + i);
         return;
     }
-    cout << "Uninitialized player disconnected. ID: " << pid << endl;
+    std::cout << "Uninitialized player disconnected. ID: " << pid << endl;
 }
 
-void event_shutdowngame(vector<Player>& playerlist) {
-    cout << "Shutdowngame" << endl;
-    for (auto& x: playerlist) {
+void event_shutdowngame(vector<Player>& playerList) {
+    std::cout << "Shutdowngame" << endl;
+    for (auto& x: playerList) {
         db_save_player(x);
     }
-    cout << "Hello1" << endl;
-    playerlist.clear();
-    cout << "Hello2" << endl;
+    std::cout << "Hello1" << endl;
+    playerList.clear();
+    std::cout << "Hello2" << endl;
 }

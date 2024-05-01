@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include <sstream>
 
 #include "Socket.hpp"
@@ -10,8 +10,8 @@
 using namespace std;
 
 
-void Player::duel_start(vector<Player>& playerlist, int opponent) {
-	Player* p2 = find_by_id(playerlist, opponent);
+void Player::duel_start(vector<Player>& playerList, int opponent) {
+	Player* p2 = find_by_id(playerList, opponent);
 			if (m_chill) {
 				send_stuff("svtell " + std::to_string(p2->get_id()) + " Your opponent has disabled ranked dueling.");
 				return;
@@ -84,7 +84,6 @@ void Player::duel_win(vector<Player>& playerlist, int opponent_id) {
 
     this->flip_duel();
     ptr->flip_duel();
-    return;
 }
 
 Player::Player(string name, string ip, string guid, int id, int wins, int losses, double mmr, bool chill)
@@ -104,16 +103,16 @@ Player::Player(string name, string ip, string guid, int id, int wins, int losses
 Player::Player(string name, string ip, string guid, int id) : 
 m_in_duel(false), m_wins(0), m_losses(0), m_mmr(1500), m_chill(false)
 {
-    m_name = name;
-    m_ip = ip;
-    m_guid = guid;
+    m_name = std::move(name);
+    m_ip = std::move(ip);
+    m_guid = std::move(guid);
     m_id = id;
 }
 
 void Player::construct_from_db(char* argv []) {
-    m_mmr = (double)strtod(argv[3], NULL);
-    m_wins = (int)stoi(argv[4], NULL);
-    m_losses = (int)stoi(argv[5], NULL);
+    m_mmr = (double)strtod(argv[3], nullptr);
+    m_wins = (int)stoi(argv[4], nullptr);
+    m_losses = (int)stoi(argv[5], nullptr);
 }
 
 void Player::flip_chill() {
@@ -133,16 +132,16 @@ void Player::set_name(const string& name) {
 void Player::set_opponent(int opponent) {
     m_opponent_id = opponent;
 }
-bool Player::in_duel() {
+bool Player::in_duel() const {
     if (m_in_duel)
     return true;
     else
     return false;
 }
-bool Player::chill() {
+bool Player::chill() const {
     return m_chill;
 }
-double Player::get_mmr() {
+double Player::get_mmr() const {
     return m_mmr;
 }
 void Player::set_mmr(double mmr) {
@@ -157,13 +156,13 @@ string Player::get_ip(){
 string Player::get_guid(){
     return m_guid;
 }
-int Player::get_wins() {
+int Player::get_wins() const {
     return m_wins;
 }
-int Player::get_losses() {
+int Player::get_losses() const {
     return m_losses;
 }
-int Player::get_id() {
+int Player::get_id() const {
     return m_id;
 }
 void Player::set_ip(const string& ip) {
@@ -178,14 +177,10 @@ void Player::increment_loss() {
 }
 
 Player::Player()
-{
-
-}
+= default;
 
 Player::~Player()
-{
-
-}
+= default;
 
 Player* find_by_name(vector<Player>& list, string& name) {
     for (auto& x: list) {
@@ -195,8 +190,8 @@ Player* find_by_name(vector<Player>& list, string& name) {
     return nullptr;
 }
 
-Player* find_by_id(vector<Player>& playerlist, int id) {
-    for (auto& x: playerlist) {
+Player* find_by_id(vector<Player>& playerList, int id) {
+    for (auto& x: playerList) {
         if (x.get_id() == id)
             return &x;
     }

@@ -2,7 +2,6 @@
 
 #include <string>
 #include <iostream>
-#include <typeinfo>
 #include <functional>
 
 #include "include/sqlite/sqlite3.h"
@@ -17,40 +16,45 @@ static const string dir = string(getcwd(buffer, 225)) + "/database.db";
 void print_player(Player& plr);
 
 //the return value and argument list of callback functions are un-modifiable, global variables are in order.
-int callback_guid(void* ptr, int argc, char** argv , char** col_name) {
+int callback_guid(void* ptr, int argc, char** argv , char** col_name)
+{
     int i; 
     cout << "NUMBER OF ELEMENTS IN GUID: " << argc << endl;
-    Player* plr = static_cast<Player *>(ptr);
-    if (argc >0) {
+    auto* plr = static_cast<Player *>(ptr);
+    if (argc >0)
+    {
         plr->construct_from_db(argv);
         success = true;
     }
     return 0;
 }
 
-int callback_ip(void* ptr, int argc, char** argv , char** col_name) {
+int callback_ip(void* ptr, int argc, char** argv , char** col_name)
+{
 
     int i; 
     cout << "NUMBER OF ELEMENTS IN IP: " << argc << endl;
-    Player* plr = static_cast<Player *>(ptr);
-    if (argc >0) {
+    auto* plr = static_cast<Player *>(ptr);
+    if (argc >0)
+    {
         plr->construct_from_db(argv);
         success = true;
     }
     return 0;
 }
 
-void db_init() {
+void db_init()
+{
     cout << "Initializing database.." << endl;
     sqlite3* db;
     int exit = 0;
     exit = sqlite3_open(dir.c_str(), &db);
     sqlite3_close(db);
     cout << "Error code in init: " << exit << endl;
-    return;
 }
 
-void db_create_table() {
+void db_create_table()
+{
     cout << "Initializing table.." << endl;
     sqlite3* db;
     static string sql = "CREATE TABLE IF NOT EXISTS PLAYERS("
@@ -78,7 +82,6 @@ void db_create_table() {
             cout << "Table initialized successfully" << endl;
         }
         sqlite3_close(db);
-        return;
 
 }
 
@@ -124,7 +127,7 @@ bool db_find_player(Player& plr) {
     static string guid("SELECT * FROM PLAYERS WHERE GUID = '%s';");
     static string ip("SELECT * FROM PLAYERS WHERE IP = '%s';"); 
 
-    string query = "";
+    string query;
 
     int rc = 0;
     
@@ -148,7 +151,7 @@ bool db_find_player(Player& plr) {
             return false;
         }
     }
-    if(success == true) {
+    if(success) {
         sqlite3_close(db);
         success = false;
         return true;
@@ -199,7 +202,7 @@ void db_save_player(Player& plr) {
         char input[1024];
         snprintf(input, sizeof(input), ip.c_str(), 
         plr.get_name().c_str(), plr.get_mmr(), plr.get_wins(), plr.get_losses(), plr.get_ip().c_str());
-        rc = sqlite3_exec(db, input, 0, NULL, &message_error);
+        rc = sqlite3_exec(db, input, nullptr, nullptr, &message_error);
         if (rc != 0) {
             cout << "Error in saving by guid: " << rc << endl;
             cout << plr.get_ip() << endl;
@@ -210,7 +213,7 @@ void db_save_player(Player& plr) {
         char input[1024];
         snprintf(input, sizeof(input), guid.c_str(), 
         plr.get_name().c_str(), plr.get_ip().c_str(), plr.get_mmr(), plr.get_wins(), plr.get_losses(), plr.get_guid().c_str());
-        rc = sqlite3_exec(db, input, 0, NULL, &message_error);
+        rc = sqlite3_exec(db, input, nullptr, nullptr, &message_error);
         if (rc != 0) {
             cout << "Error in saving by guid: " << rc << endl;
             cout << plr.get_ip() << endl;

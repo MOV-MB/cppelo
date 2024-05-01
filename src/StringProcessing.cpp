@@ -2,7 +2,7 @@
 
 #include <string>
 #include <iostream>
-#include <string.h>
+
 
 using namespace std;
 string get_player_guid(const string& s) {
@@ -13,7 +13,7 @@ string get_player_guid(const string& s) {
     }
 
     string::size_type pos1 = pos + query.size();
-    string::size_type pos2 = s.find("\\", pos1);
+    string::size_type pos2 = s.find('\\', pos1);
 
     return s.substr(pos1,pos2 - pos1);
 }
@@ -22,7 +22,7 @@ int get_player_id(const string& s) {
     try {
     static string query = " ";
     string::size_type pos1 = s.find(query, 0) + query.size();
-    string::size_type pos2 = s.find(" ", pos1);
+    string::size_type pos2 = s.find(' ', pos1);
 
     return stoi(s.substr(pos1,pos2-pos1));
     }
@@ -46,7 +46,7 @@ string get_player_name(const string& s) {
 
     static string query = "name\\";
     string::size_type pos1 = s.find(query, 0) + query.size();
-    string::size_type pos2 = s.find("\\", pos1);
+    string::size_type pos2 = s.find('\\', pos1);
 
     return s.substr(pos1,pos2 - pos1);
 }
@@ -55,7 +55,7 @@ string get_player_ip(const string& s) {
     
     static string query = "ip\\";
     string::size_type pos1 = s.find(query, 0) + query.size();
-    string::size_type pos2 = s.find(":", pos1);
+    string::size_type pos2 = s.find(':', pos1);
 
     
     return s.substr(pos1,pos2 - pos1);
